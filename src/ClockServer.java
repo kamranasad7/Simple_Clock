@@ -1,7 +1,8 @@
 import java.io.*;
 import java.net.*;
 import java.time.LocalDateTime;
-
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 public class ClockServer {
     DatagramSocket socket;
 
@@ -12,8 +13,9 @@ public class ClockServer {
         try {
             int PORT=8000;
             ClockServer server = new ClockServer(PORT);
-            System.out.println("Server created on port" +PORT);
-            server.service();
+            System.out.println("Server created on port " +PORT);
+            System.out.println(server.getTimeofZoneID(server.getZoneId("Asia/Kolkata")));
+            //server.service();
         }
         catch (Exception e) {
             System.out.println(e);
@@ -37,4 +39,21 @@ public class ClockServer {
             socket.send(response);
         }
     }
+
+    private ZonedDateTime getTimeofZoneID(ZoneId id){
+        try {
+            LocalDateTime currentTime = LocalDateTime.now();
+            ZonedDateTime zonedDateTime = currentTime.atZone(id);
+            return zonedDateTime;
+        }
+        catch (Exception e){
+            System.out.println(e);
+        }
+        return null;
+    }
+
+    private ZoneId getZoneId(String Area){
+        return ZoneId.of(Area);
+    }
+
 }
