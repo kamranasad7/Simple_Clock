@@ -1,11 +1,16 @@
+import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.*;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Vector;
+import java.util.TimerTask;
+import javax.swing.Timer;
+
 public class ClockServer {
     DatagramSocket socket;
-
+    Vector<Timer> timers;
     public ClockServer(int PORT) throws SocketException {
         socket = new DatagramSocket(PORT);
     }
@@ -40,7 +45,7 @@ public class ClockServer {
         }
     }
 
-    private ZonedDateTime getTimeofZoneID(ZoneId id){
+    ZonedDateTime getTimeofZoneID(ZoneId id){
         try {
             LocalDateTime currentTime = LocalDateTime.now();
             ZonedDateTime zonedDateTime = currentTime.atZone(id);
@@ -52,8 +57,16 @@ public class ClockServer {
         return null;
     }
 
-    private ZoneId getZoneId(String Area){
+    ZoneId getZoneId(String Area){
         return ZoneId.of(Area);
+    }
+
+    void StartNewTImer(int countdown, ActionListener listener){
+
+        Timer t = new Timer(countdown, listener);
+
+        t.start();
+        timers.add(t);
     }
 
 }
