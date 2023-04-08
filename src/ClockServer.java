@@ -1,16 +1,11 @@
-import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.*;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.Vector;
-import java.util.TimerTask;
-import javax.swing.Timer;
 
 public class ClockServer {
     DatagramSocket socket;
-    Vector<Timer> timers;
     public ClockServer(int PORT) throws SocketException {
         socket = new DatagramSocket(PORT);
     }
@@ -19,8 +14,7 @@ public class ClockServer {
             int PORT=8000;
             ClockServer server = new ClockServer(PORT);
             System.out.println("Server created on port " +PORT);
-            System.out.println(server.getTimeofZoneID(server.getZoneId("Asia/Kolkata")));
-            //server.service();
+            server.service();
         }
         catch (Exception e) {
             System.out.println(e);
@@ -30,26 +24,27 @@ public class ClockServer {
     private void service() throws IOException {
         System.out.println("Server Listening...");
         while (true) {
-            byte[] reqBody = new byte[256];
+            byte[] reqBody = new byte[100];
 
-            DatagramPacket request = new DatagramPacket(reqBody, reqBody.length);
-            socket.receive(request);    //block exec until a request is received
+            DatagramPacket req = new DatagramPacket(reqBody, reqBody.length);
+            socket.receive(req);    //block exec until a request is received
 
-            InetAddress clientAddress = request.getAddress();
-            int clientPort = request.getPort();
+            String zoneId = new String(reqBody, 0, req.getLength());
+            ZonedDateTime time = getTimeOfZoneID(getZoneId(zoneId));
 
-            String time = LocalDateTime.now().toString();
+            InetAddress clientAddress = req.getAddress();
+            int clientPort = req.getPort();
 
-            DatagramPacket response = new DatagramPacket(time.getBytes(), time.length(), clientAddress, clientPort);
+            String parsedTime = time.toLocalDateTime().toString();
+            DatagramPacket response = new DatagramPacket(parsedTime.getBytes(), parsedTime.length(), clientAddress, clientPort);
             socket.send(response);
         }
     }
 
-    ZonedDateTime getTimeofZoneID(ZoneId id){
+    ZonedDateTime getTimeOfZoneID(ZoneId id){
         try {
             LocalDateTime currentTime = LocalDateTime.now();
-            ZonedDateTime zonedDateTime = currentTime.atZone(id);
-            return zonedDateTime;
+            return currentTime.atZone(id);
         }
         catch (Exception e){
             System.out.println(e);
@@ -60,13 +55,4 @@ public class ClockServer {
     ZoneId getZoneId(String Area){
         return ZoneId.of(Area);
     }
-
-    void StartNewTImer(int countdown, ActionListener listener){
-
-        Timer t = new Timer(countdown, listener);
-
-        t.start();
-        timers.add(t);
-    }
-
 }
